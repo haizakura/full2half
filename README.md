@@ -33,3 +33,7 @@ mise exec -- corepack pnpm build
 - 图像处理完全在浏览器内完成，不会上传到服务器。
 - 自动切分会分析中央区域的纵向亮度、纹理和边界变化；无法可靠识别中缝时不会主动移除像素。
 - TIFF 会在浏览器中解码；输出支持 JPEG、PNG 与 WebP。PNG 是无损选项，但批量输出时会占用更多内存。
+
+## 许可证
+
+本项目采用 [GNU General Public License v3.0](LICENSE)（GPL-3.0-only）许可。
