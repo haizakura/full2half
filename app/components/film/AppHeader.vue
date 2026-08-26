@@ -1,5 +1,5 @@
 <template>
-  <header class="border-b border-film-900/10 bg-film-100/85 backdrop-blur-xl">
+  <header class="shrink-0 border-b border-film-900/10 bg-film-100/85 backdrop-blur-xl">
     <div class="mx-auto flex h-17 max-w-[1680px] items-center justify-between px-5 lg:px-8">
       <div class="flex items-center gap-3">
         <div class="brand-mark" aria-hidden="true">

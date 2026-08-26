@@ -135,7 +135,7 @@ const detectActiveImage = () => {
 
 <template>
   <div
-    class="film-grain flex min-h-screen flex-col"
+    class="film-grain flex min-h-screen flex-col lg:h-dvh lg:min-h-0 lg:overflow-hidden"
     @dragenter.prevent="isDragging = true"
     @dragover.prevent="isDragging = true"
     @dragleave.self="isDragging = false"
@@ -163,7 +163,7 @@ const detectActiveImage = () => {
 
     <main
       v-else
-      class="mx-auto grid w-full max-w-[1680px] flex-1 lg:h-[calc(100vh-108px)] lg:grid-cols-[260px_minmax(0,1fr)_300px]"
+      class="mx-auto grid w-full max-w-[1680px] flex-1 lg:min-h-0 lg:grid-cols-[260px_minmax(0,1fr)_300px] lg:overflow-hidden"
     >
       <FilmImageQueue
         :items="queue"

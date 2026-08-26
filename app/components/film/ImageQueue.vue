@@ -28,10 +28,10 @@ const statusText = (item: ImageQueueItem) => {
 
 <template>
   <aside
-    class="queue-panel border-b border-film-900/10 bg-film-50/45 lg:overflow-y-auto lg:border-r lg:border-b-0"
+    class="queue-panel border-b border-film-900/10 bg-film-50/45 lg:flex lg:min-h-0 lg:flex-col lg:overflow-hidden lg:border-r lg:border-b-0"
   >
     <div
-      class="sticky top-0 z-10 flex items-center justify-between border-b border-film-900/10 bg-film-50/90 px-4 py-4 backdrop-blur"
+      class="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-film-900/10 bg-film-50/90 px-4 py-4 backdrop-blur"
     >
       <div>
         <p class="text-sm font-semibold">本次扫描</p>
@@ -49,7 +49,9 @@ const statusText = (item: ImageQueueItem) => {
       />
     </div>
 
-    <div class="queue-list flex gap-2 overflow-x-auto p-3 lg:block lg:overflow-visible">
+    <div
+      class="queue-list flex gap-2 overflow-x-auto p-3 lg:block lg:min-h-0 lg:flex-1 lg:overflow-x-hidden lg:overflow-y-auto lg:overscroll-contain"
+    >
       <div
         v-for="(item, index) in items"
         :key="item.id"
@@ -103,7 +105,7 @@ const statusText = (item: ImageQueueItem) => {
     </div>
 
     <button
-      class="mx-4 mb-5 text-xs text-film-400 underline-offset-4 hover:text-film-700 hover:underline"
+      class="mx-4 mb-5 shrink-0 text-left text-xs text-film-400 underline-offset-4 hover:text-film-700 hover:underline lg:mt-3"
       @click="emit('clear')"
     >
       清空列表
