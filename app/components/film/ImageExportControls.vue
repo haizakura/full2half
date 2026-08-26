@@ -94,9 +94,9 @@ const formats: ExportFormat[] = ['jpeg', 'png', 'webp', 'tiff']
     <UButton
       v-if="totalCount > 1"
       block
-      class="mt-2"
+      class="current-export-button mt-2"
       color="neutral"
-      variant="ghost"
+      variant="outline"
       size="sm"
       :disabled="exporting"
       label="仅导出当前图像"
@@ -119,6 +119,22 @@ const formats: ExportFormat[] = ['jpeg', 'png', 'webp', 'tiff']
 
 .export-button:focus-visible {
   outline: 3px solid rgb(245 158 11 / 35%);
+  outline-offset: 2px;
+}
+
+.current-export-button {
+  border-color: var(--color-film-300) !important;
+  color: var(--color-film-800) !important;
+  background: var(--color-film-100) !important;
+}
+
+.current-export-button:hover:not(:disabled) {
+  border-color: var(--color-film-500) !important;
+  background: var(--color-film-200) !important;
+}
+
+.current-export-button:focus-visible {
+  outline: 3px solid rgb(120 97 67 / 25%);
   outline-offset: 2px;
 }
 </style>
