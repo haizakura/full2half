@@ -18,7 +18,7 @@ const emit = defineEmits<{
   'export-current': []
 }>()
 
-const formats: ExportFormat[] = ['jpeg', 'png', 'webp']
+const formats: ExportFormat[] = ['jpeg', 'png', 'webp', 'tiff']
 </script>
 
 <template>
@@ -29,7 +29,7 @@ const formats: ExportFormat[] = ['jpeg', 'png', 'webp']
         {{ completedCount }}/{{ totalCount }} DONE
       </span>
     </div>
-    <div class="mt-4 grid grid-cols-3 gap-1 rounded-lg bg-film-200/70 p-1">
+    <div class="mt-4 grid grid-cols-4 gap-1 rounded-lg bg-film-200/70 p-1">
       <button
         v-for="option in formats"
         :key="option"
@@ -41,11 +41,11 @@ const formats: ExportFormat[] = ['jpeg', 'png', 'webp']
         "
         @click="emit('update:format', option)"
       >
-        {{ option === 'jpeg' ? 'JPG' : option }}
+        {{ option === 'jpeg' ? 'JPG' : option === 'tiff' ? 'TIF' : option }}
       </button>
     </div>
 
-    <label v-if="format !== 'png'" class="mt-5 block">
+    <label v-if="format === 'jpeg' || format === 'webp'" class="mt-5 block">
       <span class="mb-3 flex items-center justify-between text-xs">
         <span class="font-medium">输出质量</span>
         <output class="font-mono text-[10px] text-film-500"
@@ -63,7 +63,10 @@ const formats: ExportFormat[] = ['jpeg', 'png', 'webp']
       />
     </label>
     <p v-else class="mt-4 text-[11px] leading-5 text-film-500">
-      PNG 无损输出，文件体积会明显大于 JPEG。
+      <template v-if="format === 'tiff'">
+        TIF 使用未压缩 RGBA 像素输出，避免再次有损编码，文件体积会很大。
+      </template>
+      <template v-else>PNG 无损输出，文件体积会明显大于 JPEG。</template>
     </p>
   </div>
 

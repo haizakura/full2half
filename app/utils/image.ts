@@ -51,6 +51,7 @@ const decodeImageRaw = async (file: File): Promise<DecodedImage> => {
       source: canvas,
       width: ifd.width,
       height: ifd.height,
+      pixels,
       dispose: () => {
         canvas.width = 0
         canvas.height = 0
@@ -105,13 +106,43 @@ const canvasToBlob = (canvas: HTMLCanvasElement, format: ExportFormat, quality: 
     )
   })
 
-export const renderCrop = async (
-  decoded: DecodedImage,
+const rotateRgbaCrop = (
+  source: Uint8ClampedArray,
+  sourceWidth: number,
   rect: CropRect,
-  rotation: Rotation,
-  format: ExportFormat,
-  quality: number
+  rotation: Rotation
 ) => {
+  const swapped = rotation === 90 || rotation === 270
+  const width = swapped ? rect.height : rect.width
+  const height = swapped ? rect.width : rect.height
+  const pixels = new Uint8Array(width * height * 4)
+
+  for (let y = 0; y < rect.height; y += 1) {
+    for (let x = 0; x < rect.width; x += 1) {
+      let outputX = x
+      let outputY = y
+
+      if (rotation === 90) {
+        outputX = rect.height - 1 - y
+        outputY = x
+      } else if (rotation === 180) {
+        outputX = rect.width - 1 - x
+        outputY = rect.height - 1 - y
+      } else if (rotation === 270) {
+        outputX = y
+        outputY = rect.width - 1 - x
+      }
+
+      const sourceIndex = ((rect.y + y) * sourceWidth + rect.x + x) * 4
+      const outputIndex = (outputY * width + outputX) * 4
+      pixels.set(source.subarray(sourceIndex, sourceIndex + 4), outputIndex)
+    }
+  }
+
+  return { pixels, width, height }
+}
+
+const renderCropCanvas = (decoded: DecodedImage, rect: CropRect, rotation: Rotation) => {
   const swapped = rotation === 90 || rotation === 270
   const canvas = document.createElement('canvas')
   canvas.width = swapped ? rect.height : rect.width
@@ -120,6 +151,7 @@ export const renderCrop = async (
 
   if (!context) throw new Error('浏览器无法创建导出画布')
 
+  context.imageSmoothingEnabled = false
   context.save()
   context.translate(canvas.width / 2, canvas.height / 2)
   context.rotate((rotation * Math.PI) / 180)
@@ -136,6 +168,44 @@ export const renderCrop = async (
   )
   context.restore()
 
+  return { canvas, context }
+}
+
+const renderTiffCrop = (decoded: DecodedImage, rect: CropRect, rotation: Rotation) => {
+  let rendered: ReturnType<typeof rotateRgbaCrop>
+
+  if (decoded.pixels) {
+    rendered = rotateRgbaCrop(decoded.pixels, decoded.width, rect, rotation)
+  } else {
+    const { canvas, context } = renderCropCanvas(decoded, rect, rotation)
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
+    rendered = {
+      pixels: new Uint8Array(
+        imageData.data.buffer,
+        imageData.data.byteOffset,
+        imageData.data.byteLength
+      ),
+      width: canvas.width,
+      height: canvas.height
+    }
+    canvas.width = 0
+    canvas.height = 0
+  }
+
+  const buffer = UTIF.encodeImage(rendered.pixels, rendered.width, rendered.height)
+  return new Blob([buffer], { type: 'image/tiff' })
+}
+
+export const renderCrop = async (
+  decoded: DecodedImage,
+  rect: CropRect,
+  rotation: Rotation,
+  format: ExportFormat,
+  quality: number
+) => {
+  if (format === 'tiff') return renderTiffCrop(decoded, rect, rotation)
+
+  const { canvas } = renderCropCanvas(decoded, rect, rotation)
   const blob = await canvasToBlob(canvas, format, quality)
   canvas.width = 0
   canvas.height = 0
@@ -144,7 +214,11 @@ export const renderCrop = async (
 
 export const baseName = (name: string) => name.replace(/\.[^.]+$/, '')
 
-export const outputExtension = (format: ExportFormat) => (format === 'jpeg' ? 'jpg' : format)
+export const outputExtension = (format: ExportFormat) => {
+  if (format === 'jpeg') return 'jpg'
+  if (format === 'tiff') return 'tif'
+  return format
+}
 
 export const rotateClockwise = (rotation: Rotation): Rotation => ((rotation + 90) % 360) as Rotation
 

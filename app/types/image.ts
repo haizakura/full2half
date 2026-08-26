@@ -1,6 +1,6 @@
 export type Rotation = 0 | 90 | 180 | 270
 
-export type ExportFormat = 'jpeg' | 'png' | 'webp'
+export type ExportFormat = 'jpeg' | 'png' | 'webp' | 'tiff'
 
 export type QueueStatus = 'ready' | 'processing' | 'done' | 'error'
 
@@ -36,6 +36,7 @@ export interface DecodedImage {
   source: CanvasImageSource
   width: number
   height: number
+  pixels?: Uint8ClampedArray
   dispose: () => void
 }
 
