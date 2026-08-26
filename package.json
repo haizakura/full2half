@@ -1,5 +1,13 @@
 {
   "name": "full2half",
+  "version": "1.0.0",
+  "author": "HAIZAKURA",
+  "description": "A local-first batch splitter for half-frame film scans",
+  "homepage": "https://f2h.nya.run",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/haizakura/full2half.git"
+  },
   "private": true,
   "license": "GPL-3.0-only",
   "type": "module",
