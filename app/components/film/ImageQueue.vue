@@ -2,7 +2,7 @@
 import type { ImageQueueItem } from '~/types/image'
 import { formatBytes } from '~/utils/image'
 
-defineProps<{
+const props = defineProps<{
   items: ImageQueueItem[]
   activeId?: string
   totalSize: number
@@ -23,6 +23,24 @@ const statusText = (item: ImageQueueItem) => {
   if (item.analysisStatus === 'analyzing') return '正在识别中线'
   if (item.analysisStatus === 'done') return `已识别 · ${formatBytes(item.size)}`
   return formatBytes(item.size)
+}
+
+const selectAdjacent = (direction: -1 | 1) => {
+  if (!props.items.length) return
+
+  const activeIndex = props.items.findIndex((item) => item.id === props.activeId)
+  const startIndex = activeIndex === -1 ? (direction === 1 ? -1 : props.items.length) : activeIndex
+  const nextIndex = Math.max(0, Math.min(props.items.length - 1, startIndex + direction))
+  const nextItem = props.items[nextIndex]
+
+  if (!nextItem) return
+  emit('select', nextItem.id)
+  nextTick(() => {
+    document.getElementById(`queue-item-${nextItem.id}`)?.scrollIntoView({
+      block: 'nearest',
+      inline: 'nearest'
+    })
+  })
 }
 </script>
 
@@ -51,9 +69,14 @@ const statusText = (item: ImageQueueItem) => {
 
     <div
       class="queue-list flex gap-2 overflow-x-auto p-3 lg:block lg:min-h-0 lg:flex-1 lg:overflow-x-hidden lg:overflow-y-auto lg:overscroll-contain"
+      tabindex="0"
+      aria-label="图像列表，使用上、下方向键选择"
+      @keydown.up.prevent="selectAdjacent(-1)"
+      @keydown.down.prevent="selectAdjacent(1)"
     >
       <div
         v-for="(item, index) in items"
+        :id="`queue-item-${item.id}`"
         :key="item.id"
         class="queue-item group mb-0 flex min-w-52 items-stretch rounded-lg border transition lg:mb-2 lg:w-full lg:min-w-0"
         :class="
