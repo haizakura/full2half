@@ -19,16 +19,19 @@ const statusText = (item: ImageQueueItem) => {
   if (item.status === 'done') return '已完成'
   if (item.status === 'error') return '失败'
   if (item.status === 'processing') return '处理中'
+  if (item.analysisStatus === 'pending') return '等待自动识别'
+  if (item.analysisStatus === 'analyzing') return '正在识别中线'
+  if (item.analysisStatus === 'done') return `已识别 · ${formatBytes(item.size)}`
   return formatBytes(item.size)
 }
 </script>
 
 <template>
   <aside
-    class="queue-panel border-b border-film-900/10 bg-film-50/45 lg:overflow-y-auto lg:border-r lg:border-b-0"
+    class="queue-panel border-b border-film-900/10 bg-film-50/45 lg:flex lg:min-h-0 lg:flex-col lg:overflow-hidden lg:border-r lg:border-b-0"
   >
     <div
-      class="sticky top-0 z-10 flex items-center justify-between border-b border-film-900/10 bg-film-50/90 px-4 py-4 backdrop-blur"
+      class="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-film-900/10 bg-film-50/90 px-4 py-4 backdrop-blur"
     >
       <div>
         <p class="text-sm font-semibold">本次扫描</p>
@@ -46,7 +49,9 @@ const statusText = (item: ImageQueueItem) => {
       />
     </div>
 
-    <div class="queue-list flex gap-2 overflow-x-auto p-3 lg:block lg:overflow-visible">
+    <div
+      class="queue-list flex gap-2 overflow-x-auto p-3 lg:block lg:min-h-0 lg:flex-1 lg:overflow-x-hidden lg:overflow-y-auto lg:overscroll-contain"
+    >
       <div
         v-for="(item, index) in items"
         :key="item.id"
@@ -73,9 +78,14 @@ const statusText = (item: ImageQueueItem) => {
               <span
                 class="size-1.5 rounded-full"
                 :class="{
-                  'bg-film-300': item.status === 'ready',
-                  'animate-pulse bg-amber-500': item.status === 'processing',
-                  'bg-emerald-500': item.status === 'done',
+                  'bg-film-300':
+                    item.status === 'ready' &&
+                    (item.analysisStatus === 'pending' || item.analysisStatus === 'failed'),
+                  'animate-pulse bg-amber-500':
+                    item.status === 'processing' || item.analysisStatus === 'analyzing',
+                  'bg-emerald-500':
+                    item.status === 'done' ||
+                    (item.status === 'ready' && item.analysisStatus === 'done'),
                   'bg-red-500': item.status === 'error'
                 }"
               />
@@ -95,7 +105,7 @@ const statusText = (item: ImageQueueItem) => {
     </div>
 
     <button
-      class="mx-4 mb-5 text-xs text-film-400 underline-offset-4 hover:text-film-700 hover:underline"
+      class="mx-4 mb-5 shrink-0 text-left text-xs text-film-400 underline-offset-4 hover:text-film-700 hover:underline lg:mt-3"
       @click="emit('clear')"
     >
       清空列表

@@ -5,6 +5,7 @@ import { decodeImage } from '~/utils/image'
 
 interface ImagePreviewOptions {
   onError?: (item: ImageQueueItem, message: string) => void
+  onDecoded?: (item: ImageQueueItem, image: DecodedImage) => void
 }
 
 export const useImagePreview = (
@@ -36,6 +37,7 @@ export const useImagePreview = (
 
       decoded.value = image
       item.error = undefined
+      options.onDecoded?.(item, image)
     } catch (error) {
       const message = error instanceof Error ? error.message : '无法读取图像'
       item.status = 'error'

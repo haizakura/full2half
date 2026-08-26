@@ -44,7 +44,9 @@ const updateCenter = (event: Event) => {
       </div>
     </div>
 
-    <div class="relative flex flex-1 items-center justify-center overflow-hidden p-5 sm:p-8">
+    <div
+      class="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden p-5 sm:p-8"
+    >
       <div v-if="loading" class="flex flex-col items-center gap-3 text-white/50">
         <UIcon name="i-lucide-loader-circle" class="size-6 animate-spin" />
         <span class="font-mono text-[10px] tracking-widest uppercase">正在读取原片</span>
