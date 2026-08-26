@@ -19,6 +19,9 @@ const statusText = (item: ImageQueueItem) => {
   if (item.status === 'done') return '已完成'
   if (item.status === 'error') return '失败'
   if (item.status === 'processing') return '处理中'
+  if (item.analysisStatus === 'pending') return '等待自动识别'
+  if (item.analysisStatus === 'analyzing') return '正在识别中线'
+  if (item.analysisStatus === 'done') return `已识别 · ${formatBytes(item.size)}`
   return formatBytes(item.size)
 }
 </script>
@@ -73,9 +76,14 @@ const statusText = (item: ImageQueueItem) => {
               <span
                 class="size-1.5 rounded-full"
                 :class="{
-                  'bg-film-300': item.status === 'ready',
-                  'animate-pulse bg-amber-500': item.status === 'processing',
-                  'bg-emerald-500': item.status === 'done',
+                  'bg-film-300':
+                    item.status === 'ready' &&
+                    (item.analysisStatus === 'pending' || item.analysisStatus === 'failed'),
+                  'animate-pulse bg-amber-500':
+                    item.status === 'processing' || item.analysisStatus === 'analyzing',
+                  'bg-emerald-500':
+                    item.status === 'done' ||
+                    (item.status === 'ready' && item.analysisStatus === 'done'),
                   'bg-red-500': item.status === 'error'
                 }"
               />

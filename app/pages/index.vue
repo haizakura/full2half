@@ -22,9 +22,15 @@ const {
   resetActiveSettings
 } = useImageQueue()
 
+const { analyzeDecodedItem, analyzeItems } = useAutoSplitDetection()
+
 const { decoded, isLoading } = useImagePreview(activeItem, {
   onError: (item, message) => {
+    item.analysisStatus = 'failed'
     toast.add({ title: `无法读取 ${item.name}`, description: message, color: 'error' })
+  },
+  onDecoded: (item, image) => {
+    if (item.analysisStatus === 'pending') analyzeDecodedItem(item, image)
   }
 })
 
@@ -40,7 +46,9 @@ const {
 const pickFiles = () => fileInput.value?.click()
 
 const acceptFiles = (files: File[]) => {
-  const { rejectedCount } = addFiles(files)
+  const { addedItems, rejectedCount } = addFiles(files)
+  const backgroundItems = addedItems.filter((item) => item.id !== activeId.value)
+  void analyzeItems(backgroundItems)
   if (rejectedCount) {
     toast.add({
       title: `已忽略 ${rejectedCount} 个不支持的文件`,
@@ -71,8 +79,25 @@ const applyCurrentSettingsToAll = () => {
   toast.add({ title: '已应用到全部图像', color: 'success' })
 }
 
+const waitForActivePreview = (items: ImageQueueItem[]) => {
+  if (!isLoading.value || !activeItem.value || !items.includes(activeItem.value)) {
+    return Promise.resolve()
+  }
+
+  return new Promise<void>((resolve) => {
+    const stop = watch(isLoading, (loading) => {
+      if (!loading) {
+        stop()
+        resolve()
+      }
+    })
+  })
+}
+
 const runExport = async (items: ImageQueueItem[], archiveName: string) => {
   try {
+    await waitForActivePreview(items)
+    await analyzeItems([])
     const result = await exportItems(items, archiveName)
     if (!result) return
 
@@ -97,6 +122,15 @@ const exportCurrent = () => {
 }
 
 const updateSettings = (settings: SplitSettings) => updateActiveSettings(settings)
+
+const detectActiveImage = () => {
+  if (!activeItem.value) return
+  if (decoded.value && !isLoading.value) {
+    analyzeDecodedItem(activeItem.value, decoded.value, true)
+    return
+  }
+  void analyzeItems([activeItem.value], true)
+}
 </script>
 
 <template>
@@ -153,6 +187,7 @@ const updateSettings = (settings: SplitSettings) => updateActiveSettings(setting
       <FilmImageControls
         v-if="activeItem"
         :settings="activeItem.settings"
+        :analysis-status="activeItem.analysisStatus"
         :format="format"
         :quality="quality"
         :completed-count="completedCount"
@@ -165,6 +200,7 @@ const updateSettings = (settings: SplitSettings) => updateActiveSettings(setting
         @update:quality="quality = $event"
         @apply-all="applyCurrentSettingsToAll"
         @reset="resetActiveSettings"
+        @detect="detectActiveImage"
         @export-all="exportAll"
         @export-current="exportCurrent"
       />

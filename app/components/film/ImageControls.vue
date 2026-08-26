@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { ExportFormat, SplitSettings } from '~/types/image'
+import type { AnalysisStatus, ExportFormat, SplitSettings } from '~/types/image'
 
 defineProps<{
   settings: SplitSettings
+  analysisStatus: AnalysisStatus
   format: ExportFormat
   quality: number
   completedCount: number
@@ -18,6 +19,7 @@ const emit = defineEmits<{
   'update:quality': [quality: number]
   'apply-all': []
   reset: []
+  detect: []
   'export-all': []
   'export-current': []
 }>()
@@ -29,7 +31,9 @@ const emit = defineEmits<{
   >
     <FilmImageSplitControls
       :settings="settings"
+      :analysis-status="analysisStatus"
       @update:settings="emit('update:settings', $event)"
+      @detect="emit('detect')"
     />
 
     <FilmImageRotationControls

@@ -4,6 +4,7 @@ import { DEFAULT_SETTINGS, isSupportedImage } from '~/utils/image'
 export interface AddFilesResult {
   addedCount: number
   rejectedCount: number
+  addedItems: ImageQueueItem[]
 }
 
 const createSettings = (): SplitSettings => ({ ...DEFAULT_SETTINGS })
@@ -22,20 +23,20 @@ export const useImageQueue = () => {
     const knownFiles = new Set(queue.value.map((item) => `${item.name}:${item.size}`))
     const unique = supported.filter((file) => !knownFiles.has(`${file.name}:${file.size}`))
 
-    queue.value.push(
-      ...unique.map((file) => ({
-        id: crypto.randomUUID(),
-        file,
-        name: file.name,
-        size: file.size,
-        status: 'ready' as const,
-        settings: createSettings()
-      }))
-    )
+    const addedItems: ImageQueueItem[] = unique.map((file) => ({
+      id: crypto.randomUUID(),
+      file,
+      name: file.name,
+      size: file.size,
+      status: 'ready' as const,
+      analysisStatus: 'pending' as const,
+      settings: createSettings()
+    }))
+    queue.value.push(...addedItems)
 
     if (!activeId.value && queue.value[0]) activeId.value = queue.value[0].id
 
-    return { addedCount: unique.length, rejectedCount }
+    return { addedCount: unique.length, rejectedCount, addedItems }
   }
 
   const removeItem = (id: string) => {
@@ -54,14 +55,32 @@ export const useImageQueue = () => {
   }
 
   const updateActiveSettings = (settings: SplitSettings) => {
-    if (activeItem.value) activeItem.value.settings = settings
+    if (activeItem.value) {
+      if (
+        activeItem.value.settings.center !== settings.center ||
+        activeItem.value.settings.gap !== settings.gap
+      ) {
+        activeItem.value.settingsTouched = true
+      }
+      activeItem.value.settings = settings
+    }
   }
 
   const applySettingsToAll = (settings: SplitSettings) => {
-    for (const item of queue.value) item.settings = { ...settings }
+    for (const item of queue.value) {
+      item.settings = { ...settings }
+      item.settingsTouched = true
+    }
   }
 
-  const resetActiveSettings = () => updateActiveSettings(createSettings())
+  const resetActiveSettings = () => {
+    if (!activeItem.value) return
+    activeItem.value.settings = {
+      ...createSettings(),
+      ...activeItem.value.detectedSettings
+    }
+    activeItem.value.settingsTouched = false
+  }
 
   return {
     queue,

@@ -26,7 +26,7 @@ export const formatBytes = (bytes: number) => {
   return `${value >= 10 || index === 0 ? value.toFixed(0) : value.toFixed(1)} ${units[index]}`
 }
 
-export const decodeImage = async (file: File): Promise<DecodedImage> => {
+const decodeImageRaw = async (file: File): Promise<DecodedImage> => {
   if (isTiff(file)) {
     const buffer = await file.arrayBuffer()
     const ifds = UTIF.decode(buffer)
@@ -65,6 +65,19 @@ export const decodeImage = async (file: File): Promise<DecodedImage> => {
     height: bitmap.height,
     dispose: () => bitmap.close()
   }
+}
+
+// Some browsers can leave concurrent createImageBitmap calls unresolved. Keeping
+// decoding serial also caps peak memory when a batch contains large TIFF scans.
+let decodeQueue = Promise.resolve()
+
+export const decodeImage = (file: File): Promise<DecodedImage> => {
+  const decoded = decodeQueue.then(() => decodeImageRaw(file))
+  decodeQueue = decoded.then(
+    () => undefined,
+    () => undefined
+  )
+  return decoded
 }
 
 export const calculateCropRects = (

@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import type { SplitSettings } from '~/types/image'
+import type { AnalysisStatus, SplitSettings } from '~/types/image'
 
-const props = defineProps<{ settings: SplitSettings }>()
-const emit = defineEmits<{ 'update:settings': [settings: SplitSettings] }>()
+const props = defineProps<{ settings: SplitSettings; analysisStatus: AnalysisStatus }>()
+const emit = defineEmits<{
+  'update:settings': [settings: SplitSettings]
+  detect: []
+}>()
 
 const updateNumber = (key: 'center' | 'gap', event: Event) => {
   emit('update:settings', {
@@ -14,7 +17,30 @@ const updateNumber = (key: 'center' | 'gap', event: Event) => {
 
 <template>
   <div class="border-b border-film-900/10 px-5 py-5">
-    <p class="eyebrow">切分</p>
+    <div class="flex items-center justify-between">
+      <p class="eyebrow">切分</p>
+      <button
+        type="button"
+        class="flex items-center gap-1 text-[10px] text-film-500 hover:text-film-800 disabled:cursor-wait disabled:opacity-60"
+        :disabled="analysisStatus === 'analyzing' || analysisStatus === 'pending'"
+        @click="emit('detect')"
+      >
+        <UIcon
+          :name="
+            analysisStatus === 'analyzing' || analysisStatus === 'pending'
+              ? 'i-lucide-loader-circle'
+              : 'i-lucide-scan-search'
+          "
+          class="size-3"
+          :class="{ 'animate-spin': analysisStatus === 'analyzing' }"
+        />
+        {{
+          analysisStatus === 'analyzing' || analysisStatus === 'pending'
+            ? '正在自动识别'
+            : '重新识别'
+        }}
+      </button>
+    </div>
     <div class="mt-5 space-y-6">
       <label class="block">
         <span class="mb-3 flex items-center justify-between text-xs">
