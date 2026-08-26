@@ -1,0 +1,6 @@
+.codex
+.nuxt
+.output
+node_modules
+sample
+pnpm-lock.yaml

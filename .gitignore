@@ -1,0 +1,9 @@
+.nuxt
+.output
+node_modules
+.pnpm-store
+.data
+.DS_Store
+*.log
+
+sample
