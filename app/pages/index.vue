@@ -101,7 +101,7 @@ const updateSettings = (settings: SplitSettings) => updateActiveSettings(setting
 
 <template>
   <div
-    class="film-grain min-h-screen"
+    class="film-grain flex min-h-screen flex-col"
     @dragenter.prevent="isDragging = true"
     @dragover.prevent="isDragging = true"
     @dragleave.self="isDragging = false"
@@ -121,6 +121,7 @@ const updateSettings = (settings: SplitSettings) => updateActiveSettings(setting
 
     <FilmUploadEmptyState
       v-if="!queue.length"
+      class="w-full flex-1"
       :file-input-id="FILE_INPUT_ID"
       :is-dragging="isDragging"
       @pick="pickFiles"
@@ -128,7 +129,7 @@ const updateSettings = (settings: SplitSettings) => updateActiveSettings(setting
 
     <main
       v-else
-      class="mx-auto grid max-w-[1680px] lg:h-[calc(100vh-68px)] lg:grid-cols-[260px_minmax(0,1fr)_300px]"
+      class="mx-auto grid w-full max-w-[1680px] flex-1 lg:h-[calc(100vh-108px)] lg:grid-cols-[260px_minmax(0,1fr)_300px]"
     >
       <FilmImageQueue
         :items="queue"
@@ -168,6 +169,8 @@ const updateSettings = (settings: SplitSettings) => updateActiveSettings(setting
         @export-current="exportCurrent"
       />
     </main>
+
+    <FilmAppFooter />
 
     <FilmDropOverlay v-if="isDragging" />
   </div>
